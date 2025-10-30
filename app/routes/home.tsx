@@ -1,13 +1,16 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import type { Route } from './+types/home';
+import { Welcome } from '../welcome/welcome';
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: 'DAW –– Digital audio workstation playground.' },
+    {
+      name: 'description',
+      content: 'Sandbox for prototyping digital audio workstation features.'
+    }
   ];
 }
 
-export default function Home() {
+export default function HomePage() {
   return <Welcome />;
 }
