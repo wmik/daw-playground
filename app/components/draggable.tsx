@@ -47,7 +47,7 @@ export function Draggable({ data, config }: DraggableProps) {
       maxConstraints={[500, 300]}
       onResize={onResize}
       className={cn(
-        'group flex flex-col rounded-xl border-x border-b border-gray-200 dark:border-gray-700 transition-shadow',
+        'group flex flex-col rounded-xl border-x border-b border-gray-200 dark:border-gray-700 transition-shadow bg-background',
         isDragging && !viewer?.current?.state?.minimize
           ? 'shadow-lg shadow-gray-200'
           : '',
