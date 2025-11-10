@@ -38,7 +38,10 @@ export function ViewerTitle(props: CustomComponentProps) {
   let ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div className='flex items-center py-2 px-1 w-full h-full' ref={ref}>
+    <div
+      className='flex items-center py-2 px-1 w-full h-full bg-background'
+      ref={ref}
+    >
       <span
         className='text-xs'
         children={`Playlist. (${props?.current?.dimension.width} x ${props?.current?.dimension.height})`}

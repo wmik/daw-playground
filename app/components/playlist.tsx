@@ -1,19 +1,129 @@
-import { ResizableBox, type ResizeCallbackData } from 'react-resizable';
+import { ResizableBox } from 'react-resizable';
 import { Slider } from '~/components/ui/slider';
 import { cn } from '~/lib/utils';
 import { TrackToggleGroup } from '~/components/track-toggle-group';
 import { TrackOptions } from '~/components/track-options';
-import { KnobPercentage } from './knob-percentage';
+import { KnobPercentage } from '~/components/knob-percentage';
+import { Button } from '~/components/ui/button';
+import { PlusIcon } from 'lucide-react';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DraggableAttributes
+} from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import {
+  useSortable,
+  SortableContext,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import {
+  TrackDataProvider,
+  useCurrentTrack,
+  useTrackData
+} from '~/hooks/use-track-data';
 
 export function Playlist() {
   return (
-    <div className='flex flex-col'>
-      <Track />
-    </div>
+    <TrackDataProvider>
+      <div className='flex flex-col'>
+        <TrackList />
+        <TrackInsert />
+      </div>
+    </TrackDataProvider>
   );
 }
 
-export function Track() {
+function TrackList() {
+  let sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8 // Only activate drag after a small distance to allow clicks
+      }
+    })
+  );
+
+  let { tracks, setTracks } = useTrackData();
+
+  function arrayMove(array: any[], previous: number, next: number) {
+    let clone = array.slice();
+    let [item] = clone.splice(previous, 1);
+
+    clone.splice(next, 0, item);
+
+    return clone;
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    let { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setTracks(items => {
+        let oldIndex = items.findIndex(entry => entry.id === active.id);
+        let newIndex = items.findIndex(entry => entry.id === over?.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+
+  return (
+    <DndContext
+      modifiers={[restrictToVerticalAxis]}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+    >
+      <SortableContext items={tracks} strategy={verticalListSortingStrategy}>
+        {tracks?.map(track => (
+          <Track key={track?.id} data={track} />
+        ))}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function TrackInsert() {
+  let { setTracks } = useTrackData();
+
+  return (
+    <Button
+      className='rounded-full w-fit my-8 mx-auto'
+      onClick={() =>
+        setTracks(prev =>
+          prev?.concat({
+            id: Math.random().toString(32).substring(2),
+            title: `Track ${prev?.length + 1}`
+          })
+        )
+      }
+    >
+      <PlusIcon /> Add Button
+    </Button>
+  );
+}
+
+type TrackDataProps = {
+  id: string;
+};
+
+type TrackProps = {
+  data: TrackDataProps;
+};
+
+export function Track({ data }: TrackProps) {
+  let { id } = data ?? {};
+  let { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  let style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
+
   return (
     <ResizableBox
       axis='y'
@@ -21,7 +131,11 @@ export function Track() {
       height={130}
       minConstraints={[100, 130]}
       maxConstraints={[Infinity, 260]}
-      className='border-b border-gray-200 min-h-20 flex w-full relative'
+      style={{ ...style }}
+      className={cn(
+        'border-b border-gray-200 min-h-20 flex w-full relative',
+        isDragging ? 'border-t shadow-lg shadow-gray-200' : ''
+      )}
       handle={
         <button
           className={cn(
@@ -31,17 +145,53 @@ export function Track() {
         />
       }
     >
-      <TrackControl />
+      <TrackControl
+        data={{
+          id
+        }}
+        config={{
+          setNodeRef,
+          listeners,
+          attributes
+        }}
+      />
       <TrackLane />
     </ResizableBox>
   );
 }
 
-export function TrackControl() {
+type TrackControlConfigProps = {
+  setNodeRef?: (element: HTMLElement | null) => void;
+  listeners?: SyntheticListenerMap;
+  attributes?: DraggableAttributes;
+};
+
+type TrackControlDataProps = {
+  id: string;
+};
+
+type TrackControlProps = {
+  config?: TrackControlConfigProps;
+  data: TrackControlDataProps;
+};
+
+export function TrackControl({ config, data }: TrackControlProps) {
+  let track = useCurrentTrack(data?.id);
+  let { setNodeRef, listeners, attributes } = config ?? {};
+
   return (
-    <div className='peer border-r border-gray-200 bg-background flex flex-col gap-4 p-2 min-w-3xs'>
+    <div
+      className='peer border-r border-gray-200 bg-background flex flex-col gap-4 p-2 min-w-3xs'
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+    >
       <div className='flex justify-between items-center'>
-        <TrackLabel />
+        <TrackLabel
+          data={{
+            title: track?.current.title
+          }}
+        />
         <TrackOptions />
       </div>
       <div className='flex justify-between items-center gap-4'>
@@ -53,8 +203,16 @@ export function TrackControl() {
   );
 }
 
-export function TrackLabel() {
-  return <p className='' children='Track 1' />;
+type TrackLabelDataProps = {
+  title?: any;
+};
+
+type TrackLabelProps = {
+  data: TrackLabelDataProps;
+};
+
+export function TrackLabel({ data }: TrackLabelProps) {
+  return <p className='cursor-move' children={data?.title} />;
 }
 
 export function TrackGain() {

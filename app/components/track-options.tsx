@@ -55,9 +55,9 @@ export function TrackOptions() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Mute</DropdownMenuItem>
-        <DropdownMenuItem>Solo</DropdownMenuItem>
-        <DropdownMenuItem disabled>Record</DropdownMenuItem>
+        <DropdownMenuItem>Instrument</DropdownMenuItem>
+        <DropdownMenuItem>Arrangement</DropdownMenuItem>
+        <DropdownMenuItem disabled>Automation</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           Merge

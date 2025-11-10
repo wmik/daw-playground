@@ -69,6 +69,7 @@ export function KnobBase({
     >
       {/* <KnobHeadlessLabel id={labelId}>{label}</KnobHeadlessLabel> */}
       <KnobHeadless
+        includeIntoTabOrder
         id={knobId}
         aria-labelledby={labelId}
         className='relative w-5 h-5 outline-none'
