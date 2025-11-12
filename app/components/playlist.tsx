@@ -92,7 +92,7 @@ function TrackInsert() {
 
   return (
     <Button
-      className='rounded-full w-fit my-8 mx-auto'
+      className='rounded-full w-fit my-8 mx-auto sticky left-1/2'
       onClick={() =>
         setTracks(prev =>
           prev?.concat({
@@ -102,7 +102,7 @@ function TrackInsert() {
         )
       }
     >
-      <PlusIcon /> Add Button
+      <PlusIcon /> Add Track
     </Button>
   );
 }
@@ -134,7 +134,7 @@ export function Track({ data }: TrackProps) {
       style={{ ...style }}
       className={cn(
         'border-b border-gray-200 min-h-20 flex w-full relative',
-        isDragging ? 'border-t shadow-lg shadow-gray-200' : ''
+        isDragging ? 'border-t shadow-lg shadow-gray-200 z-10' : ''
       )}
       handle={
         <button
@@ -155,7 +155,7 @@ export function Track({ data }: TrackProps) {
           attributes
         }}
       />
-      <TrackLane />
+      <TrackLane data={{ count: 32 }} />
     </ResizableBox>
   );
 }
@@ -181,7 +181,7 @@ export function TrackControl({ config, data }: TrackControlProps) {
 
   return (
     <div
-      className='peer border-r border-gray-200 bg-background flex flex-col gap-4 p-2 min-w-3xs'
+      className='peer border-r border-gray-200 bg-background flex flex-col gap-4 p-2 min-w-3xs sticky left-0'
       ref={setNodeRef}
       {...listeners}
       {...attributes}
@@ -219,6 +219,37 @@ export function TrackGain() {
   return <Slider defaultValue={[50]} max={100} step={1} />;
 }
 
-export function TrackLane() {
-  return <div className='p-2' />;
+type TrackLaneDataProps = {
+  count: number;
+};
+
+type TrackLaneProps = {
+  data: TrackLaneDataProps;
+};
+
+export function TrackLane({ data }: TrackLaneProps) {
+  let beats = Array.from({ length: data?.count ?? 32 }, (_, idx) => (
+    <Beat key={idx} data={{ count: 4 }} />
+  ));
+
+  return <div className='w-full flex' children={beats} />;
+}
+
+type BeatDataProps = {
+  count: number;
+};
+
+type BeatProps = {
+  data: BeatDataProps;
+};
+
+export function Beat({ data }: BeatProps) {
+  let bars = Array.from({ length: data?.count }, (_, idx) => <Bar key={idx} />);
+  return <div className='flex' children={bars} />;
+}
+
+export function Bar() {
+  return (
+    <div className='min-w-10 odd:bg-white even:bg-gray-50 border-r border-gray-200' />
+  );
 }
