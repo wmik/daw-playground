@@ -43,11 +43,17 @@ export function Draggable({ data, config }: DraggableProps) {
     <ResizableBox
       width={Number(viewer?.current.dimension.width)}
       height={Number(viewer?.current.dimension.height)}
-      minConstraints={[300, 200]}
-      maxConstraints={[500, 300]}
+      minConstraints={[
+        Number(viewer?.current.range.width.slice().shift()),
+        Number(viewer?.current.range.height.slice().shift())
+      ]}
+      maxConstraints={[
+        Number(viewer?.current.range.width.slice().pop()),
+        Number(viewer?.current.range.height.slice().pop())
+      ]}
       onResize={onResize}
       className={cn(
-        'group flex flex-col rounded-xl border-x border-b border-gray-200 dark:border-gray-700 transition-shadow',
+        'group flex flex-col border-x border-b border-gray-200 dark:border-gray-700 transition-shadow bg-background',
         isDragging && !viewer?.current?.state?.minimize
           ? 'shadow-lg shadow-gray-200'
           : '',
@@ -61,7 +67,7 @@ export function Draggable({ data, config }: DraggableProps) {
       handle={
         <button
           className={cn(
-            'opacity-0 group-hover:opacity-100 transition-opacity rounded-full ml-auto mt-auto mr-1 mb-2 cursor-nwse-resize',
+            'opacity-0 group-hover:opacity-100 transition-opacity rounded-full ml-auto mt-auto mr-1 mb-2 cursor-nwse-resize sticky bottom-2 right-2',
             viewer?.current?.state?.minimize || viewer?.current?.state?.maximize
               ? 'pointer-events-none hidden'
               : ''
@@ -73,9 +79,9 @@ export function Draggable({ data, config }: DraggableProps) {
     >
       <>
         <div
-          className='bg-gray-200 w-full min-h-4 rounded-t-xl cursor-move'
-          ref={setNodeRef}
+          className='border-y border-gray-200 w-full min-h-10 cursor-move sticky top-0 left-0 z-10'
           children={typeof Title === 'function' ? <Title {...viewer} /> : Title}
+          ref={setNodeRef}
           {...listeners}
           {...attributes}
         />

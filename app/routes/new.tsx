@@ -9,6 +9,7 @@ import { Draggable } from '~/components/draggable';
 import { Droppable } from '~/components/droppable';
 import { useViewerData } from '~/hooks/use-viewer-data';
 import type { Route } from './+types/new';
+import { Taskbar } from '~/components/taskbar';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -60,14 +61,15 @@ export default function NewPage() {
     // current.position.x += e.delta.x;
     // current.position.y += e.delta.y;
 
-    let update =
+    let next =
       viewers?.map(viewer => (viewer.id === current.id ? clone : viewer)) ?? [];
 
-    setViewers(update);
+    setViewers(next);
   }
 
   return (
     <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+      <Taskbar className='w-full rounded-none px-4' />
       <Droppable>
         {viewers.map(viewer => (
           <Draggable

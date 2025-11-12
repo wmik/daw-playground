@@ -7,6 +7,7 @@ import {
   useContext,
   type FC
 } from 'react';
+import { Playlist } from '~/components/playlist';
 import { ViewerTitle } from '~/components/viewer-toolbar';
 
 export type ViewerDataPosition = {
@@ -25,6 +26,11 @@ export type ViewerDataState = {
   hidden?: boolean;
 };
 
+export type ViewerDataRange = {
+  width: [number, number];
+  height: [number, number];
+};
+
 export type CustomComponentProps = Partial<ReturnType<typeof useCurrentViewer>>;
 export type CustomComponent = FC<CustomComponentProps>;
 
@@ -35,20 +41,25 @@ export type ViewerData = {
   position: ViewerDataPosition;
   dimension: ViewerDataDimension;
   state?: ViewerDataState;
+  range: ViewerDataRange;
 };
 
 const initialViewersData: ViewerData[] = [
   {
     id: 'playlist',
     title: ViewerTitle,
-    children: 'Drag/Resize viewer',
+    children: <Playlist />,
     position: {
-      x: 0,
-      y: 0
+      x: 100,
+      y: 100
     },
     dimension: {
-      width: 300,
-      height: 200
+      width: 800,
+      height: 500
+    },
+    range: {
+      width: [500, Infinity],
+      height: [300, Infinity]
     }
   }
 ];
