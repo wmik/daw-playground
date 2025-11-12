@@ -41,6 +41,7 @@ export function Playlist() {
 }
 
 function TrackList() {
+  let currentScrollPos = useRef(0);
   let scrollRefs = useRef<Record<string, HTMLDivElement>>({});
   let sensors = useSensors(
     useSensor(PointerSensor, {
@@ -54,6 +55,8 @@ function TrackList() {
 
   function onScroll(e: UIEvent<HTMLElement>) {
     let scrollLeft = e.currentTarget.scrollLeft;
+
+    currentScrollPos.current = scrollLeft;
 
     // Sync all children to the same scroll position
     Object.values(scrollRefs.current).forEach((child: HTMLDivElement) => {
@@ -97,8 +100,13 @@ function TrackList() {
             key={track?.id}
             data={track}
             config={{
-              registerScroll: (el: HTMLDivElement) =>
-                (scrollRefs.current[track?.id] = el),
+              registerScroll: (el: HTMLDivElement) => {
+                scrollRefs.current[track?.id] = el;
+
+                if (el && el.scrollLeft !== currentScrollPos.current) {
+                  el.scrollLeft = currentScrollPos.current;
+                }
+              },
               onScroll
             }}
           />
