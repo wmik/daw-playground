@@ -27,6 +27,7 @@ import {
   useCurrentTrack,
   useTrackData
 } from '~/hooks/use-track-data';
+import { useRef, type UIEvent } from 'react';
 
 export function Playlist() {
   return (
@@ -40,6 +41,7 @@ export function Playlist() {
 }
 
 function TrackList() {
+  let scrollRefs = useRef<Record<string, HTMLDivElement>>({});
   let sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -49,6 +51,17 @@ function TrackList() {
   );
 
   let { tracks, setTracks } = useTrackData();
+
+  function onScroll(e: UIEvent<HTMLElement>) {
+    let scrollLeft = e.currentTarget.scrollLeft;
+
+    // Sync all children to the same scroll position
+    Object.values(scrollRefs.current).forEach((child: HTMLDivElement) => {
+      if (child && child !== e.target) {
+        child.scrollLeft = scrollLeft;
+      }
+    });
+  }
 
   function arrayMove(array: any[], previous: number, next: number) {
     let clone = array.slice();
@@ -80,7 +93,15 @@ function TrackList() {
     >
       <SortableContext items={tracks} strategy={verticalListSortingStrategy}>
         {tracks?.map(track => (
-          <Track key={track?.id} data={track} />
+          <Track
+            key={track?.id}
+            data={track}
+            config={{
+              registerScroll: (el: HTMLDivElement) =>
+                (scrollRefs.current[track?.id] = el),
+              onScroll
+            }}
+          />
         ))}
       </SortableContext>
     </DndContext>
@@ -92,7 +113,7 @@ function TrackInsert() {
 
   return (
     <Button
-      className='rounded-full w-fit my-8 mx-auto sticky left-1/2'
+      className='rounded-full w-fit my-8 mx-auto'
       onClick={() =>
         setTracks(prev =>
           prev?.concat({
@@ -107,15 +128,21 @@ function TrackInsert() {
   );
 }
 
+type TrackConfigProps = {
+  registerScroll: any;
+  onScroll: any;
+};
+
 type TrackDataProps = {
   id: string;
 };
 
 type TrackProps = {
+  config?: TrackConfigProps;
   data: TrackDataProps;
 };
 
-export function Track({ data }: TrackProps) {
+export function Track({ config, data }: TrackProps) {
   let { id } = data ?? {};
   let { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -155,7 +182,7 @@ export function Track({ data }: TrackProps) {
           attributes
         }}
       />
-      <TrackLane data={{ count: 32 }} />
+      <TrackLane data={{ id, count: 32 }} config={config} />
     </ResizableBox>
   );
 }
@@ -219,20 +246,34 @@ export function TrackGain() {
   return <Slider defaultValue={[50]} max={100} step={1} />;
 }
 
+type TrackLaneConfigProps = {
+  registerScroll: any;
+  onScroll: any;
+};
+
 type TrackLaneDataProps = {
+  id: string;
   count: number;
 };
 
 type TrackLaneProps = {
+  config?: TrackLaneConfigProps;
   data: TrackLaneDataProps;
 };
 
-export function TrackLane({ data }: TrackLaneProps) {
+export function TrackLane({ config, data }: TrackLaneProps) {
   let beats = Array.from({ length: data?.count ?? 32 }, (_, idx) => (
     <Beat key={idx} data={{ count: 4 }} />
   ));
 
-  return <div className='w-full flex' children={beats} />;
+  return (
+    <div
+      className='w-full flex overflow-x-auto scrollbar-none whitespace-nowrap'
+      children={beats}
+      ref={config?.registerScroll}
+      onScroll={config?.onScroll}
+    />
+  );
 }
 
 type BeatDataProps = {
@@ -245,11 +286,16 @@ type BeatProps = {
 
 export function Beat({ data }: BeatProps) {
   let bars = Array.from({ length: data?.count }, (_, idx) => <Bar key={idx} />);
-  return <div className='flex' children={bars} />;
+  return (
+    <div
+      className='flex border-r border-gray-200 last:border-0'
+      children={bars}
+    />
+  );
 }
 
 export function Bar() {
   return (
-    <div className='min-w-10 odd:bg-white even:bg-gray-50 border-r border-gray-200' />
+    <div className='min-w-10 odd:bg-white even:bg-gray-50 border-r border-gray-200 last:border-0' />
   );
 }
