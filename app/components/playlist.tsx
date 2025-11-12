@@ -384,8 +384,21 @@ export function TrackLane({ config, data }: TrackLaneProps) {
 
   return (
     <div
-      className='w-full flex overflow-x-auto scrollbar-none whitespace-nowrap'
-      children={beats}
+      className='w-full flex overflow-x-auto scrollbar-none whitespace-nowrap relative'
+      children={
+        <>
+          <div
+            className='sticky left-10 top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none'
+            // style={{ transform: 'translateX(-50%)' }}
+          >
+            <div className='sticky left-10 top-0  transform  -translate-y-full'>
+              <div className='w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-red-500'></div>
+            </div>
+          </div>
+
+          {beats}
+        </>
+      }
       ref={config?.registerScroll}
       onScroll={config?.onScroll}
     />

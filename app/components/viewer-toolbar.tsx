@@ -58,10 +58,10 @@ export function ViewerTitle(props: CustomComponentProps) {
             props?.update?.({
               dimension: !minimize
                 ? {
-                    width: Math.min(Number(ref?.current?.clientWidth), 300),
+                    width: Math.min(Number(ref?.current?.clientWidth), 800),
                     height: Number(ref?.current?.clientHeight)
                   }
-                : { width: 300, height: 200 },
+                : { width: 800, height: 500 },
               state: {
                 maximize: false,
                 minimize: !minimize,
@@ -83,7 +83,7 @@ export function ViewerTitle(props: CustomComponentProps) {
 
             props?.update?.({
               dimension: maximize
-                ? { width: 300, height: 200 }
+                ? { width: 800, height: 500 }
                 : {
                     width: window.innerWidth,
                     height: window.innerHeight
