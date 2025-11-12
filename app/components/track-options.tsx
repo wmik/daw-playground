@@ -5,6 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
@@ -23,6 +24,9 @@ export function TrackOptions() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-56' align='start'>
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>
+          Editing
+        </DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem>
             Rename...
@@ -38,6 +42,9 @@ export function TrackOptions() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>
+          Appearance
+        </DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Color</DropdownMenuSubTrigger>
@@ -49,20 +56,32 @@ export function TrackOptions() {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
-          <DropdownMenuItem>
-            Export
-            <DropdownMenuShortcut>⌘+X</DropdownMenuShortcut>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>
+          Composition
+        </DropdownMenuLabel>
         <DropdownMenuItem>Instrument</DropdownMenuItem>
         <DropdownMenuItem>Arrangement</DropdownMenuItem>
-        <DropdownMenuItem disabled>Automation</DropdownMenuItem>
+        <DropdownMenuItem disabled>Effects</DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>
+          Rendering
+        </DropdownMenuLabel>
         <DropdownMenuItem>
           Merge
           <DropdownMenuShortcut>⇧⌘M</DropdownMenuShortcut>
         </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Export</DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem>Export as MIDI file</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Export as wav audio file</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
   );

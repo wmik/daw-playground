@@ -27,7 +27,7 @@ import {
   useCurrentTrack,
   useTrackData
 } from '~/hooks/use-track-data';
-import { useRef, type UIEvent } from 'react';
+import { useRef, type ReactNode, type UIEvent } from 'react';
 
 export function Playlist() {
   return (
@@ -89,30 +89,47 @@ function TrackList() {
   }
 
   return (
-    <DndContext
-      modifiers={[restrictToVerticalAxis]}
-      onDragEnd={handleDragEnd}
-      sensors={sensors}
-    >
-      <SortableContext items={tracks} strategy={verticalListSortingStrategy}>
-        {tracks?.map(track => (
-          <Track
-            key={track?.id}
-            data={track}
-            config={{
-              registerScroll: (el: HTMLDivElement) => {
-                scrollRefs.current[track?.id] = el;
+    <>
+      <TrackRuler
+        data={{
+          id: 'ruler'
+        }}
+        config={{
+          registerScroll: (el: HTMLDivElement) => {
+            scrollRefs.current['ruler'] = el;
 
-                if (el && el.scrollLeft !== currentScrollPos.current) {
-                  el.scrollLeft = currentScrollPos.current;
-                }
-              },
-              onScroll
-            }}
-          />
-        ))}
-      </SortableContext>
-    </DndContext>
+            if (el && el.scrollLeft !== currentScrollPos.current) {
+              el.scrollLeft = currentScrollPos.current;
+            }
+          },
+          onScroll
+        }}
+      />
+      <DndContext
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
+        <SortableContext items={tracks} strategy={verticalListSortingStrategy}>
+          {tracks?.map(track => (
+            <Track
+              key={track?.id}
+              data={track}
+              config={{
+                registerScroll: (el: HTMLDivElement) => {
+                  scrollRefs.current[track?.id] = el;
+
+                  if (el && el.scrollLeft !== currentScrollPos.current) {
+                    el.scrollLeft = currentScrollPos.current;
+                  }
+                },
+                onScroll
+              }}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+    </>
   );
 }
 
@@ -195,6 +212,65 @@ export function Track({ config, data }: TrackProps) {
   );
 }
 
+type TrackRulerConfigProps = {
+  registerScroll: any;
+  onScroll: any;
+};
+
+type TrackRulerDataProps = {
+  id: string;
+};
+
+type TrackRulerProps = {
+  config?: TrackRulerConfigProps;
+  data: TrackRulerDataProps;
+};
+
+export function TrackRuler({ config, data }: TrackRulerProps) {
+  let { id } = data ?? {};
+  let { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  let style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
+
+  return (
+    <ResizableBox
+      axis='y'
+      width={Infinity}
+      height={20}
+      minConstraints={[100, 10]}
+      maxConstraints={[Infinity, 40]}
+      style={{ ...style }}
+      className={cn(
+        'border-b border-gray-200 min-h-6 flex w-full relative',
+        isDragging ? 'border-t shadow-lg shadow-gray-200 z-10' : ''
+      )}
+      handle={
+        <button
+          className={cn(
+            'absolute left-24 bottom-1 w-10 opacity-0 peer-hover:opacity-100 hover:opacity-100 bg-linear-to-r from-indigo-400 to-fuchsia-400',
+            'transition-opacity rounded-full h-1 cursor-row-resize'
+          )}
+        />
+      }
+    >
+      <TrackRulerControl
+        data={{
+          id
+        }}
+        config={{
+          setNodeRef,
+          listeners,
+          attributes
+        }}
+      />
+      <TrackRulerLane data={{ id, count: 32 }} config={config} />
+    </ResizableBox>
+  );
+}
+
 type TrackControlConfigProps = {
   setNodeRef?: (element: HTMLElement | null) => void;
   listeners?: SyntheticListenerMap;
@@ -234,6 +310,38 @@ export function TrackControl({ config, data }: TrackControlProps) {
         <KnobPercentage label='Pan' theme='sky' />
       </div>
       <TrackToggleGroup />
+    </div>
+  );
+}
+
+type TrackRulerControlConfigProps = {
+  setNodeRef?: (element: HTMLElement | null) => void;
+  listeners?: SyntheticListenerMap;
+  attributes?: DraggableAttributes;
+};
+
+type TrackRulerControlDataProps = {
+  id: string;
+};
+
+type TrackRulerControlProps = {
+  config?: TrackRulerControlConfigProps;
+  data: TrackRulerControlDataProps;
+};
+
+export function TrackRulerControl({ config, data }: TrackRulerControlProps) {
+  let { setNodeRef, listeners, attributes } = config ?? {};
+
+  return (
+    <div
+      className='peer border-r border-gray-200 bg-background flex flex-col gap-4 p-2 min-w-3xs sticky left-0'
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+    >
+      <div className='flex justify-between items-center'>
+        <TrackOptions />
+      </div>
     </div>
   );
 }
@@ -280,6 +388,98 @@ export function TrackLane({ config, data }: TrackLaneProps) {
       children={beats}
       ref={config?.registerScroll}
       onScroll={config?.onScroll}
+    />
+  );
+}
+
+type TrackRulerLaneConfigProps = {
+  registerScroll: any;
+  onScroll: any;
+};
+
+type TrackRulerLaneDataProps = {
+  id: string;
+  count: number;
+};
+
+type TrackRulerLaneProps = {
+  config?: TrackRulerLaneConfigProps;
+  data: TrackRulerLaneDataProps;
+};
+
+export function TrackRulerLane({ config, data }: TrackRulerLaneProps) {
+  let beats = Array.from({ length: data?.count ?? 32 }, (_, idx) => (
+    <RulerBeat key={idx} data={{ count: 4, cursor: idx + 1 }} />
+  ));
+
+  return (
+    <div
+      className='w-full flex overflow-x-auto scrollbar-none whitespace-nowrap'
+      children={beats}
+      ref={config?.registerScroll}
+      onScroll={config?.onScroll}
+    />
+  );
+}
+
+type RulerBeatDataProps = {
+  count: number;
+  cursor: ReactNode;
+};
+
+type RulerBeatProps = {
+  data: RulerBeatDataProps;
+};
+
+export function RulerBeat({ data }: RulerBeatProps) {
+  let bars = Array.from({ length: data?.count }, (_, idx) => (
+    <RulerBar
+      key={idx}
+      data={{
+        cursor: `${data?.cursor}.${idx + 1}`?.replace(
+          /(\d+)\.4/,
+          (_, a) => `${Number(a) + 1}`
+        )
+      }}
+    />
+  ));
+
+  return (
+    <div
+      className={cn(
+        'flex border-r border-gray-200 last:border-0 [&:last-child>div:last-child>p:last-child]:hidden relative',
+        "[&:first-child:before]:content-['1']",
+        '[&:first-child:before]:top-2',
+        '[&:first-child:before]:left-1',
+        '[&:first-child:before]:w-4',
+        '[&:first-child:before]:h-4',
+        '[&:first-child:before]:absolute',
+        '[&:first-child:before]:text-xs',
+        '[&:first-child:before]:font-medium'
+      )}
+      children={bars}
+    />
+  );
+}
+
+type RulerBarData = {
+  cursor: ReactNode;
+};
+
+type RulerBarProps = {
+  data: RulerBarData;
+};
+
+export function RulerBar({ data }: RulerBarProps) {
+  return (
+    <div
+      className='min-w-10 relative last:[&>p]:text-xs last:[&>p]:font-medium last:[&>p]:top-2'
+      children={
+        <p
+          className='text-[10px] absolute -right-2 top-1 w-4 h-4 bg-background text-center z-20'
+          children={data?.cursor}
+        />
+      }
     />
   );
 }
